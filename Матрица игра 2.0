@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MATRIX HACK: THE CHOSEN ONE</title>
+    <style>
+        /* БАЗОВЫЕ НАСТРОЙКИ СТРАНИЦЫ */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: monospace;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* ЭФФЕКТ СТАРОГО ЭЛТ-МОНИТОРА И ВИНЬЕТКА */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: 
+                radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+            z-index: 300;
+            background-size: 100% 100%, 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* АВТОРСТВО */
+        #author {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            text-align: center;
+            color: #005500;
+            font-size: 14px;
+            z-index: 400;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+
+        /* КНОПКА ПЕРЕКЛЮЧЕНИЯ ПЛАТФОРМЫ (ПК / МОБИЛЬНЫЙ) */
+        #platform-toggle {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            padding: 6px 12px;
+            font-size: 11px;
+            color: #00FF00;
+            background: rgba(0, 20, 0, 0.4);
+            border: 1px solid #00FF00;
+            cursor: pointer;
+            z-index: 1000;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+            backdrop-filter: blur(2px);
+        }
+
+        #platform-toggle:hover {
+            background: #00FF00;
+            color: #000;
+            box-shadow: 0 0 15px #00FF00;
+            transform: scale(1.05);
+        }
+
+        #platform-toggle:active {
+            transform: scale(0.95);
+        }
+
+        /* ГЛАВНОЕ МЕНЮ */
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            z-index: 100;
+        }
+
+        .glitch {
+            font-size: 32px;
+            color: #00FF00;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+            margin-bottom: 40px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* КНОПКИ МЕНЮ С АНИМАЦИЕЙ НАЖАТИЯ */
+        .btn {
+            border: 2px solid #00FF00;
+            color: #00FF00;
+            background-color: rgba(0, 20, 0, 0.2);
+            padding: 15px 40px;
+            cursor: pointer;
+            font-size: 18px;
+            text-transform: uppercase;
+            transition: all 0.2s ease-in-out;
+            font-weight: bold;
+            font-family: monospace;
+            margin-bottom: 15px;
+            width: 280px;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background-color: #00FF00;
+            color: #000;
+            box-shadow: 0 0 20px #00FF00;
+        }
+
+        .btn:active {
+            transform: scale(0.92);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-story {
+            border-color: #00aa00;
+            color: #00aa00;
+        }
+
+        .btn-story:hover {
+            border-color: #00FF00;
+            color: #000;
+        }
+
+        /* ИГРОВОЙ ИНТЕРФЕЙС */
+        #ui {
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            color: #00FF00;
+            font-size: 18px;
+            display: none;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        #ui-label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+
+        #progress-bar {
+            width: 300px;
+            height: 12px;
+            border: 2px solid #00FF00;
+            background-color: rgba(0, 20, 0, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        #progress-fill {
+            height: 100%;
+            background-color: #00FF00;
+            width: 0%;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px #00FF00;
+        }
+
+        #score-counter {
+            display: none;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00FF00;
+        }
+
+        /* ЭКРАН КАТСЦЕН */
+        #story-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        /* ПЛАВНОЕ ПОЯВЛЕНИЕ ТЕКСТА КАТСЦЕНЫ */
+        .story-text {
+            color: #00FF00;
+            font-size: 22px;
+            line-height: 1.6;
+            max-width: 600px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            margin-bottom: 40px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+        }
+
+        .story-text.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Подпись Автора -->
+<div id="author">by: SemRoos</div>
+
+<!-- Кнопка переключения платформ (СУПЕР ИДЕАЛЬНАЯ ФИЧА) -->
+<button id="platform-toggle" onclick="togglePlatform()">МОБИЛЬНЫЙ</button>
+
+<!-- Главное Меню -->
+<div id="menu">
+    <div class="glitch">MATRIX SYSTEM v3.2</div>
+    <button class="btn sound-hover" onclick="playClickSound(); startGameModeCampaign(1)">ПОДКЛЮЧИТЬСЯ</button>
+    <button class="btn sound-hover" onclick="playClickSound(); startGameModeInfinite()">БЕСКОНЕЧНЫЙ РЕЖИМ</button>
+    <button class="btn btn-story sound-hover" onclick="playClickSound(); openStorySequence(0)">ПРЕДЫСТОРИЯ</button>
+</div>
+
+<!-- Экран текстовой катсцены -->
+<div id="story-screen">
+    <div id="story-content" class="story-text"></div>
+    <button id="story-btn" class="btn sound-hover" onclick="playClickSound(); nextStoryPage()"></button>
+</div>
+
+<!-- Игровой UI (Прогресс и Очки) -->
+<div id="ui">
+    <div id="ui-label">СИНХРОНИЗАЦИЯ ЯДРА:</div>
+    <div id="progress-bar">
+        <div id="progress-fill"></div>
+    </div>
+    <div id="score-counter">ОЧКИ: 0</div>
+</div>
+
+<!-- Игровой холст -->
+<canvas id="c"></canvas>
+
+<script>
+    /**
+     * MATRIX HACK: THE CHOSEN ONE
+     * Author: SemRoos
+     * Engine version: 3.2 Super Ideal (PC + Mobile Adaptive + Procedural Audio)
+     */
+
+    // ==========================================
+    // АУДИО ДВИЖОК (PROCEDURAL SYNTHESIZER)
+    // ==========================================
+    let audioCtx = null;
+    let ambientOsc = null;
+    let ambientGain = null;
+
+    // Инициализация аудио-контекста (вызывается по первому клику)
+    function initAudioEngine() {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            startAmbientHum();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    // Фоновый гул старого ЭЛТ монитора
+    function startAmbientHum() {
+        if (!audioCtx) return;
+        ambientOsc = audioCtx.createOscillator();
+        ambientGain = audioCtx.createGain();
+        
+        ambientOsc.type = 'sawtooth';
+        ambientOsc.frequency.value = 50; // Низкочастотный гул (50Hz)
+        
+        ambientGain.gain.value = 0.015; // Очень тихо, чтобы не раздражало
+        
+        ambientOsc.connect(ambientGain);
+        ambientGain.connect(audioCtx.destination);
+        ambientOsc.start();
+    }
+
+    // Звук наведения на кнопку
+    function playHoverSound() {
+        if (!audioCtx || audioCtx.state !== 'running') return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime); // Высокий короткий писк
+        
+        gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    // Звук клика по кнопке
+    function playClickSound() {
+        initAudioEngine(); // Гарантируем запуск
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+        
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // Звук успешного попадания по символу (Взлом)
+    function playHitSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        // Двойной тон (как монетка в ретро-играх, но мягче)
+        osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(1800, audioCtx.currentTime + 0.05);
+        
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    // Звук перехода/победы (Глубокий Swoosh)
+    function playTransitionSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 1.5); // Падение частоты
+        
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.5);
+    }
+
+    // Привязка звука наведения ко всем кнопкам
+    document.querySelectorAll('.btn, #platform-toggle').forEach(el => {
+        el.addEventListener('mouseenter', playHoverSound);
+    });
+
+    // ==========================================
+    // ВИЗУАЛ И ИГРОВОЙ ДВИЖОК
+    // ==========================================
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    // --- СИСТЕМА ПЛАТФОРМ ---
+    let currentPlatform = 'mobile';
+
+    const platforms = {
+        mobile: {
+            label: "МОБИЛЬНЫЙ",
+            clickPadding: 24,       
+            reactionLvl1: 1500,     
+            reactionLvl2: 1200      
+        },
+        pc: {
+            label: "ПК",
+            clickPadding: 45,       
+            reactionLvl1: 2000,     
+            reactionLvl2: 1600      
+        }
+    };
+
+    // --- БАЗОВЫЕ КОНСТАНТЫ ИДЕАЛЬНОГО ГЕЙМПЛЕЯ ---
+    const BASE_FONT_SIZE = 16;
+    const BASE_SPEED = 0.15;
+    const BASE_SPAWN_COOLDOWN = 2000;
+    const BASE_MAX_TARGETS = 3;
+    const BASE_TARGET_COUNT = 20;
+
+    let config = {
+        fontSize: BASE_FONT_SIZE,
+        speed: BASE_SPEED,
+        reactionTime: platforms.mobile.reactionLvl1,
+        spawnCooldown: BASE_SPAWN_COOLDOWN,
+        maxTargets: BASE_MAX_TARGETS,
+        targetCount: BASE_TARGET_COUNT,
+        isInfinite: false,
+        currentLevel: 1
+    };
+
+    let canvasWidth, canvasHeight, columns;
+    let drops = [];
+    let score = 0;
+    let targets = [];
+    let particles = [];
+    let ripples = []; 
+    let menuSquares = [];
+    let lastSpawnTime = 0;
+    let isPlaying = false;
+    let mouseX = -100, mouseY = -100;
+
+    const charsArray = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ:;<>[]{}!@#$%^&*()_+'.split('');
+
+    // --- ТЕКСТЫ И ЛОГИКА КАТСЦЕН ---
+    const storySequences = {
+        0: {
+            pages: [
+                "Ты — оператор Матрицы на корабле. Но Нео нужна помощь по получению ключа доступа от сейфа агентов. Ты должен найти эти ключи и ввести правильный код. Тогда у тебя всё выйдет.",
+                "Ты должен быть точным и быстрым, чтоб у тебя получилось точно найти эти ключи. Я верю в тебя. У тебя всё получится."
+            ],
+            finalButtonLabel: "В МЕНЮ",
+            onComplete: function() { closeStoryScreen(); openMainMenu(); }
+        },
+        1: {
+            pages: [
+                "Нео смог получить доступ от сейфа, и человечество уже спасено, но Сион находится в опасности. Ты должен перейти на новый уровень."
+            ],
+            finalButtonLabel: "ПЕРЕХОД",
+            onComplete: function() { closeStoryScreen(); startGameModeCampaign(2); }
+        },
+        2: {
+            pages: [
+                "Ты наконец-то завершил эту работу, и ты признан лучшим оператором Сиона. С этого момента у тебя началась жизнь, хорошая жизнь.",
+                "И ты понял то, что ты и есть тот самый избранный, как и Нео."
+            ],
+            finalButtonLabel: "ПЕРЕЗАГРУЗКА",
+            onComplete: function() { window.location.reload(); }
+        }
+    };
+
+    let activeStorySequence = null;
+    let currentStoryPageIndex = 0;
+
+    // --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
+    function initializeApplication() {
+        handleResize();
+        createMenuBackgroundSquares();
+        window.addEventListener('resize', handleResize);
+        
+        window.addEventListener('pointermove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // Первый клик/тап в любом месте запускает аудио движок
+        document.body.addEventListener('pointerdown', initAudioEngine, { once: true });
+        
+        window.requestAnimationFrame(mainGameLoop);
+    }
+
+    // --- ПЕРЕКЛЮЧЕНИЕ ПЛАТФОРМ (ПК / МОБИЛЬНЫЙ) ---
+    function togglePlatform() {
+        playClickSound(); // Звук при переключении
+        const btn = document.getElementById('platform-toggle');
+        
+        if (currentPlatform === 'mobile') {
+            currentPlatform = 'pc';
+            btn.innerText = platforms.pc.label;
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            }
+        } else {
+            currentPlatform = 'mobile';
+            btn.innerText = platforms.mobile.label;
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(err => console.log(err));
+            }
+        }
+        applyDifficultySettings();
+    }
+
+    function applyDifficultySettings() {
+        const pData = platforms[currentPlatform];
+        if (config.currentLevel === 1) {
+            config.reactionTime = pData.reactionLvl1;
+        } else {
+            config.reactionTime = pData.reactionLvl2;
+        }
+    }
+
+    function handleResize() {
+        canvasWidth = canvas.width = window.innerWidth;
+        canvasHeight = canvas.height = window.innerHeight;
+        columns = Math.floor(canvasWidth / config.fontSize);
+        drops = [];
+        for (let i = 0; i < columns; i++) drops[i] = Math.random() * -30;
+    }
+
+    function createMenuBackgroundSquares() {
+        menuSquares = [];
+        for (let i = 0; i < 50; i++) {
+            menuSquares.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                size: Math.random() * 4 + 2,
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.005
+            });
+        }
+    }
+
+    // --- УПРАВЛЕНИЕ РЕЖИМАМИ ИГРЫ ---
+    function startGameModeCampaign(levelNumber) {
+        config.isInfinite = false;
+        config.currentLevel = levelNumber;
+
+        if (levelNumber === 1) {
+            config.fontSize = BASE_FONT_SIZE;
+            config.speed = BASE_SPEED;
+            config.targetCount = BASE_TARGET_COUNT;
+            config.maxTargets = BASE_MAX_TARGETS;
+            config.spawnCooldown = BASE_SPAWN_COOLDOWN;
+        } else {
+            config.fontSize = 13;               
+            config.speed = 0.24;                 
+            config.targetCount = 40;             
+            config.maxTargets = 5;               
+            config.spawnCooldown = 1300;         
+        }
+
+        applyDifficultySettings();
+        prepareGameSession();
+    }
+
+    function startGameModeInfinite() {
+        config.isInfinite = true;
+        config.currentLevel = 1;
+        
+        config.fontSize = BASE_FONT_SIZE;
+        config.speed = BASE_SPEED;
+        config.maxTargets = BASE_MAX_TARGETS;
+        config.spawnCooldown = BASE_SPAWN_COOLDOWN;
+
+        applyDifficultySettings();
+        prepareGameSession();
+    }
+
+    function prepareGameSession() {
+        closeMainMenu();
+        closeStoryScreen();
+        
+        const uiContainer = document.getElementById('ui');
+        const scoreCounter = document.getElementById('score-counter');
+        const progressBar = document.getElementById('progress-bar');
+        const uiLabel = document.getElementById('ui-label');
+        const progressFill = document.getElementById('progress-fill');
+
+        uiContainer.style.display = 'block';
+
+        if (config.isInfinite) {
+            scoreCounter.style.display = 'block';
+            progressBar.style.display = 'none';
+            uiLabel.style.display = 'none';
+            scoreCounter.innerText = "ОЧКИ: 0";
+        } else {
+            scoreCounter.style.display = 'none';
+            progressBar.style.display = 'block';
+            uiLabel.style.display = 'block';
+            progressFill.style.width = '0%';
+        }
+
+        score = 0;
+        targets = [];
+        particles = [];
+        ripples = [];
+        lastSpawnTime = 0;
+        
+        handleResize();
+        isPlaying = true;
+        
+        playTransitionSound(); // Звук старта уровня
+    }
+
+    // --- УПРАВЛЕНИЕ МЕНЮ И КАТСЦЕНАМИ ---
+    function openMainMenu() { document.getElementById('menu').style.display = 'flex'; }
+    function closeMainMenu() { document.getElementById('menu').style.display = 'non
